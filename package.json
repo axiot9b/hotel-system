@@ -3,12 +3,11 @@
   "version": "1.0.0",
   "description": "Sistema de Gestión Hotelera Profesional",
   "private": true,
-  "workspaces": ["backend", "frontend"],
   "scripts": {
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "build": "cd frontend && npm run build",
+    "build": "npm run build --prefix frontend",
     "start": "cd backend && NODE_ENV=production node src/index.js",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "cd backend && npm test",
