@@ -78,7 +78,8 @@ router.post('/', [
   }
 
   try {
-    const { guestId, roomId, checkInDate, checkOutDate, ratePerNight, adults, children, notes, source } = req.body;
+    const { guestId, roomId, checkInDate, checkOutDate, ratePerNight, adults, children, notes, source,
+            discountType, discountValue, discountReason } = req.body;
 
     // Verificar conflictos de fechas
     const conflict = await Reservation.findOne({
@@ -97,12 +98,19 @@ router.post('/', [
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
     const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
-    const totalAmount = nights * parseFloat(ratePerNight);
+    const baseAmount = nights * parseFloat(ratePerNight);
+    const dv = parseFloat(discountValue) || 0;
+    const discountAmount = discountType === 'percent' ? baseAmount * dv / 100
+                         : discountType === 'amount'  ? dv : 0;
+    const totalAmount = Math.max(0, baseAmount - discountAmount);
 
     const full = await sequelize.transaction(async (t) => {
       const reservation = await Reservation.create({
         guestId, roomId, checkInDate, checkOutDate,
         nights, ratePerNight, totalAmount,
+        discountType: discountType || null,
+        discountValue: dv,
+        discountReason: discountReason || null,
         adults: adults || 1,
         children: children || 0,
         notes,

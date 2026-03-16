@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { TrendingUp, AlertCircle, BarChart2, Download, BookOpen } from 'lucide-react';
+import { TrendingUp, AlertCircle, BarChart2, Download, BookOpen, Printer } from 'lucide-react';
 import { exportCSV } from '../utils/exportCSV';
 
 const fmt = (n) =>
@@ -572,10 +572,16 @@ function MonthlyTab() {
           </select>
         </div>
         {data && (
-          <button onClick={exportMonthly}
-            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">
-            <Download className="h-4 w-4" /> Exportar CSV
-          </button>
+          <div className="ml-auto flex gap-2">
+            <button onClick={exportMonthly}
+              className="flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+              <Download className="h-4 w-4" /> CSV / Excel
+            </button>
+            <button onClick={() => window.print()}
+              className="flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+              <Printer className="h-4 w-4" /> Imprimir / PDF
+            </button>
+          </div>
         )}
       </div>
 

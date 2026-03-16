@@ -39,3 +39,9 @@ CREATE TABLE IF NOT EXISTS room_rates (
 
 CREATE INDEX IF NOT EXISTS idx_room_rates_type  ON room_rates(room_type_id);
 CREATE INDEX IF NOT EXISTS idx_room_rates_dates ON room_rates(start_date, end_date);
+
+-- 4. Descuentos en reservaciones
+ALTER TABLE reservations
+  ADD COLUMN IF NOT EXISTS discount_type   VARCHAR(10) CHECK (discount_type IN ('percent','amount')),
+  ADD COLUMN IF NOT EXISTS discount_value  DECIMAL(10,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS discount_reason TEXT;

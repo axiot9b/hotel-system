@@ -37,8 +37,10 @@ export default function ReservationsPage() {
   const [selectedGuest, setSelectedGuest] = useState(null);
   const [form, setForm] = useState({
     guestId: '', roomId: '', checkInDate: '', checkOutDate: '',
-    ratePerNight: '', adults: 1, children: 0, notes: '', source: 'direct'
+    ratePerNight: '', adults: 1, children: 0, notes: '', source: 'direct',
+    discountType: '', discountValue: '', discountReason: ''
   });
+  const [seasonalRateName, setSeasonalRateName] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -85,8 +87,10 @@ export default function ReservationsPage() {
     setNewGuest({ firstName: '', lastName: '', idType: 'dni', idNumber: '', phone: '', email: '' });
     setForm({
       guestId: '', roomId: '', checkInDate: '', checkOutDate: '',
-      ratePerNight: '', adults: 1, children: 0, notes: '', source: 'direct'
+      ratePerNight: '', adults: 1, children: 0, notes: '', source: 'direct',
+      discountType: '', discountValue: '', discountReason: ''
     });
+    setSeasonalRateName('');
     try {
       const rData = await api.get('/rooms?status=available');
       setRooms(rData);
@@ -148,13 +152,32 @@ export default function ReservationsPage() {
     }
   }
 
-  function onRoomChange(roomId) {
+  async function applySeasonalRate(roomId, checkInDate, rooms) {
     const room = rooms.find(r => r.id === parseInt(roomId));
-    setForm(f => ({
-      ...f,
-      roomId,
-      ratePerNight: room?.roomType?.basePrice || ''
-    }));
+    if (!room || !checkInDate) return room?.roomType?.basePrice || '';
+    try {
+      const res = await api.get(`/room-rates/for-date?roomTypeId=${room.roomTypeId}&date=${checkInDate}`);
+      if (res.rate) {
+        setSeasonalRateName(res.rate.name);
+        return res.rate.ratePerNight;
+      }
+    } catch {}
+    setSeasonalRateName('');
+    return room?.roomType?.basePrice || '';
+  }
+
+  async function onRoomChange(roomId) {
+    const room = rooms.find(r => r.id === parseInt(roomId));
+    const rate = await applySeasonalRate(roomId, form.checkInDate, rooms);
+    setForm(f => ({ ...f, roomId, ratePerNight: rate }));
+  }
+
+  async function onCheckInDateChange(date) {
+    setForm(f => ({ ...f, checkInDate: date, checkOutDate: '' }));
+    if (form.roomId && date) {
+      const rate = await applySeasonalRate(form.roomId, date, rooms);
+      setForm(f => ({ ...f, checkInDate: date, checkOutDate: '', ratePerNight: rate }));
+    }
   }
 
   // Min date para checkOutDate = checkInDate + 1 día
@@ -167,9 +190,15 @@ export default function ReservationsPage() {
 
   const today = new Date().toISOString().split('T')[0];
 
-  // Calculo automatico
+  // Calculo automatico con descuento
   const nights = calcNights(form.checkInDate, form.checkOutDate);
-  const estimatedTotal = nights * (parseFloat(form.ratePerNight) || 0);
+  const baseTotal = nights * (parseFloat(form.ratePerNight) || 0);
+  const discountAmt = form.discountType === 'percent'
+    ? baseTotal * (parseFloat(form.discountValue) || 0) / 100
+    : form.discountType === 'amount'
+    ? (parseFloat(form.discountValue) || 0)
+    : 0;
+  const estimatedTotal = Math.max(0, baseTotal - discountAmt);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -186,12 +215,15 @@ export default function ReservationsPage() {
     try {
       const res = await api.post('/reservations', {
         ...form,
-        guestId:      parseInt(form.guestId),
-        roomId:       parseInt(form.roomId),
-        ratePerNight: parseFloat(form.ratePerNight),
-        adults:       parseInt(form.adults),
-        children:     parseInt(form.children),
-        source:       form.source || 'direct'
+        guestId:       parseInt(form.guestId),
+        roomId:        parseInt(form.roomId),
+        ratePerNight:  parseFloat(form.ratePerNight),
+        adults:        parseInt(form.adults),
+        children:      parseInt(form.children),
+        source:        form.source || 'direct',
+        discountType:  form.discountType || null,
+        discountValue: parseFloat(form.discountValue) || 0,
+        discountReason: form.discountReason || null
       });
       setShowModal(false);
       navigate(`/reservations/${res.id}`);
@@ -573,7 +605,7 @@ export default function ReservationsPage() {
                     type="date"
                     value={form.checkInDate}
                     min={today}
-                    onChange={e => setForm({ ...form, checkInDate: e.target.value, checkOutDate: '' })}
+                    onChange={e => onCheckInDateChange(e.target.value)}
                     className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-hotel-500 outline-none"
                     required
                   />
@@ -594,10 +626,25 @@ export default function ReservationsPage() {
 
               {/* Resumen automatico */}
               {nights > 0 && form.ratePerNight && (
-                <div className="bg-hotel-50 rounded-lg p-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{nights} noches x ${parseFloat(form.ratePerNight).toLocaleString()}</span>
-                    <span className="font-bold text-hotel-800">${estimatedTotal.toLocaleString()}</span>
+                <div className="bg-hotel-50 rounded-lg p-3 text-sm space-y-1">
+                  {seasonalRateName && (
+                    <div className="flex items-center gap-1.5 text-xs text-hotel-700 font-medium mb-1">
+                      <span className="bg-hotel-100 px-2 py-0.5 rounded-full">⭐ Tarifa temporada: {seasonalRateName}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-gray-600">
+                    <span>{nights} noches × ${parseFloat(form.ratePerNight).toLocaleString()}</span>
+                    <span>${baseTotal.toLocaleString()}</span>
+                  </div>
+                  {discountAmt > 0 && (
+                    <div className="flex justify-between text-green-700">
+                      <span>Descuento {form.discountType === 'percent' ? `(${form.discountValue}%)` : 'fijo'}</span>
+                      <span>-${discountAmt.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold text-hotel-800 border-t border-hotel-100 pt-1">
+                    <span>Total</span>
+                    <span>${estimatedTotal.toLocaleString()}</span>
                   </div>
                 </div>
               )}
@@ -638,6 +685,42 @@ export default function ReservationsPage() {
                     className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-hotel-500 outline-none"
                   />
                 </div>
+              </div>
+
+              {/* Descuento */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descuento <span className="text-gray-400 font-normal">(opcional)</span></label>
+                <div className="flex gap-2">
+                  <select
+                    value={form.discountType}
+                    onChange={e => setForm({ ...form, discountType: e.target.value, discountValue: '' })}
+                    className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-hotel-500 outline-none w-36"
+                  >
+                    <option value="">Sin descuento</option>
+                    <option value="percent">Porcentaje (%)</option>
+                    <option value="amount">Monto fijo ($)</option>
+                  </select>
+                  {form.discountType && (
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder={form.discountType === 'percent' ? 'ej: 10' : 'ej: 500'}
+                      value={form.discountValue}
+                      onChange={e => setForm({ ...form, discountValue: e.target.value })}
+                      className="flex-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-hotel-500 outline-none"
+                    />
+                  )}
+                </div>
+                {form.discountType && (
+                  <input
+                    type="text"
+                    placeholder="Motivo del descuento..."
+                    value={form.discountReason}
+                    onChange={e => setForm({ ...form, discountReason: e.target.value })}
+                    className="mt-2 w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-hotel-500 outline-none"
+                  />
+                )}
               </div>
 
               {/* Canal de origen + Notas */}

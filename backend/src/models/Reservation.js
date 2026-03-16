@@ -57,6 +57,20 @@ module.exports = (sequelize) => {
       allowNull: false,
       field: 'total_amount'
     },
+    discountType: {
+      type: DataTypes.ENUM('percent', 'amount'),
+      allowNull: true,
+      field: 'discount_type'
+    },
+    discountValue: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0,
+      field: 'discount_value'
+    },
+    discountReason: {
+      type: DataTypes.TEXT,
+      field: 'discount_reason'
+    },
     notes: DataTypes.TEXT,
     source: {
       type: DataTypes.STRING(30),

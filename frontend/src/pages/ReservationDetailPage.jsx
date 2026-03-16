@@ -233,7 +233,13 @@ export default function ReservationDetailPage() {
         <div className="bg-white rounded-xl shadow-sm border p-5 space-y-3">
           <h3 className="font-semibold flex items-center gap-2"><DollarSign className="h-4 w-4" /> Financiero</h3>
           <div className="text-sm space-y-1">
-            <p className="text-gray-600">Tarifa: ${parseFloat(res.ratePerNight).toLocaleString()} /noche</p>
+            <p className="text-gray-600">Tarifa: ${parseFloat(res.ratePerNight).toLocaleString()} /noche × {res.nights} noches</p>
+            {res.discountType && (
+              <p className="text-green-700">
+                Descuento {res.discountType === 'percent' ? `${parseFloat(res.discountValue)}%` : `$${parseFloat(res.discountValue).toLocaleString()} fijo`}
+                {res.discountReason && ` — ${res.discountReason}`}
+              </p>
+            )}
             <p className="text-gray-600">Hospedaje: ${parseFloat(res.totalAmount).toLocaleString()}</p>
             <p className="text-gray-600">Cargos extra: ${(totalCharges - parseFloat(res.totalAmount)).toLocaleString()}</p>
             <p className="text-gray-600">Pagado: ${totalPaid.toLocaleString()}</p>
