@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build -w hotel-frontend",
+  "buildCommand": "npm install --prefix frontend && npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index" }
