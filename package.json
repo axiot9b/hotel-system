@@ -13,7 +13,7 @@
     "test:backend": "cd backend && npm test",
     "test:frontend": "cd frontend && npm test",
     "db:migrate": "cd backend && npx sequelize-cli db:migrate",
-    "db:seed": "cd backend && npx sequelize-cli db:seed:all",
+    "db:seed": "cd backend && node src/seeders/initial.js",
     "db:reset": "cd backend && npx sequelize-cli db:migrate:undo:all && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all"
   },
   "devDependencies": {
