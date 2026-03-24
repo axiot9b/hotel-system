@@ -14,9 +14,13 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('token');
     if (token && user) {
       api.get('/auth/me')
-        .then(setUser)
-        .catch(() => logout())
-        .finally(() => setLoading(false));
+        .then(data => { setUser(data); setLoading(false); })
+        .catch(() => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
+          setLoading(false);
+        });
     } else {
       setLoading(false);
     }
