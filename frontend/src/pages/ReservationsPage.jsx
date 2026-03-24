@@ -738,7 +738,11 @@ export default function ReservationsPage() {
                     <option value="booking">Booking.com</option>
                     <option value="airbnb">Airbnb</option>
                     <option value="expedia">Expedia</option>
-                    <option value="agency">Agencia</option>
+                    <option value="trivago">Trivago</option>
+                    <option value="hotelscom">Hotels.com</option>
+                    <option value="despegar">Despegar</option>
+                    <option value="tripadvisor">TripAdvisor</option>
+                    <option value="agency">Agencia de viajes</option>
                     <option value="other">Otro</option>
                   </select>
                 </div>

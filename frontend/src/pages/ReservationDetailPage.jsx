@@ -226,6 +226,14 @@ export default function ReservationDetailPage() {
             <p>Entrada: <span className="font-medium text-gray-900">{res.checkInDate}</span></p>
             <p>Salida: <span className="font-medium text-gray-900">{res.checkOutDate}</span></p>
             <p>{res.nights} noches — {res.adults} adultos, {res.children} niños</p>
+            {res.source && res.source !== 'direct' && (
+              <p>Canal: <span className="font-medium text-gray-900">{{
+                booking: 'Booking.com', airbnb: 'Airbnb', expedia: 'Expedia',
+                trivago: 'Trivago', hotelscom: 'Hotels.com', despegar: 'Despegar',
+                tripadvisor: 'TripAdvisor', agency: 'Agencia de viajes',
+                phone: 'Teléfono', walk_in: 'Walk-in', other: 'Otro'
+              }[res.source] || res.source}</span></p>
+            )}
             {res.notes && <p className="italic mt-2">"{res.notes}"</p>}
           </div>
         </div>

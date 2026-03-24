@@ -82,6 +82,54 @@ const statusColors = {
   cancelled: 'bg-red-100 text-red-700'
 };
 
+const SOURCE_CONFIG = {
+  direct:      { label: 'Directo',       color: '#16a34a' },
+  booking:     { label: 'Booking.com',   color: '#1d4ed8' },
+  airbnb:      { label: 'Airbnb',        color: '#e11d48' },
+  expedia:     { label: 'Expedia',       color: '#d97706' },
+  trivago:     { label: 'Trivago',       color: '#7c3aed' },
+  hotelscom:   { label: 'Hotels.com',    color: '#dc2626' },
+  despegar:    { label: 'Despegar',      color: '#0891b2' },
+  tripadvisor: { label: 'TripAdvisor',   color: '#059669' },
+  agency:      { label: 'Agencia',       color: '#9333ea' },
+  phone:       { label: 'Teléfono',      color: '#ea580c' },
+  walk_in:     { label: 'Walk-in',       color: '#0d9488' },
+  other:       { label: 'Otro',          color: '#6b7280' },
+};
+
+function SourceChart({ stats }) {
+  if (!stats || stats.length === 0) {
+    return <p className="text-sm text-gray-400 py-4 text-center">Sin datos de los últimos 90 días</p>;
+  }
+  const total = stats.reduce((s, r) => s + parseInt(r.count), 0);
+  return (
+    <div className="space-y-2.5">
+      {stats.map(row => {
+        const cfg = SOURCE_CONFIG[row.source] || SOURCE_CONFIG.other;
+        const pct = total > 0 ? Math.round((parseInt(row.count) / total) * 100) : 0;
+        return (
+          <div key={row.source} className="flex items-center gap-3">
+            <div className="w-24 flex-shrink-0 flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: cfg.color }} />
+              <span className="text-xs text-gray-600 truncate">{cfg.label}</span>
+            </div>
+            <div className="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
+              <div
+                className="h-full rounded-full flex items-center justify-end pr-2 transition-all"
+                style={{ width: `${Math.max(pct, 4)}%`, backgroundColor: cfg.color }}
+              >
+                {pct >= 12 && <span className="text-[10px] font-bold text-white">{pct}%</span>}
+              </div>
+            </div>
+            <span className="text-xs font-semibold text-gray-700 w-8 text-right">{row.count}</span>
+          </div>
+        );
+      })}
+      <p className="text-xs text-gray-400 pt-1">Total: {total} reservaciones · últimos 90 días</p>
+    </div>
+  );
+}
+
 const statusLabels = {
   pending: 'Pendiente',
   confirmed: 'Confirmada',
@@ -222,6 +270,12 @@ export default function DashboardPage() {
           onAction={r => navigate(`/reservations/${r.id}`)}
           navigate={navigate}
         />
+      </div>
+
+      {/* Source distribution chart */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h3 className="font-semibold text-gray-900 mb-4">Canal de Origen de Reservaciones</h3>
+        <SourceChart stats={data.sourceStats} />
       </div>
 
       {/* Recent reservations */}

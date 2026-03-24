@@ -15,6 +15,32 @@ const STATUS_STYLES = {
   checked_in:  { bg: 'bg-green-200 border-green-500',    text: 'text-green-900'  },
   checked_out: { bg: 'bg-gray-200 border-gray-400',      text: 'text-gray-700'   }
 };
+
+// Colors for each booking source (used in calendar bars and legend)
+const SOURCE_CONFIG = {
+  direct:      { label: 'Directo',       bg: '#dcfce7', border: '#16a34a', text: '#14532d' },
+  booking:     { label: 'Booking.com',   bg: '#dbeafe', border: '#1d4ed8', text: '#1e3a8a' },
+  airbnb:      { label: 'Airbnb',        bg: '#ffe4e6', border: '#e11d48', text: '#881337' },
+  expedia:     { label: 'Expedia',       bg: '#fef3c7', border: '#d97706', text: '#78350f' },
+  trivago:     { label: 'Trivago',       bg: '#ede9fe', border: '#7c3aed', text: '#4c1d95' },
+  hotelscom:   { label: 'Hotels.com',    bg: '#fee2e2', border: '#dc2626', text: '#7f1d1d' },
+  despegar:    { label: 'Despegar',      bg: '#cffafe', border: '#0891b2', text: '#164e63' },
+  tripadvisor: { label: 'TripAdvisor',   bg: '#d1fae5', border: '#059669', text: '#064e3b' },
+  agency:      { label: 'Agencia',       bg: '#f3e8ff', border: '#9333ea', text: '#3b0764' },
+  phone:       { label: 'Teléfono',      bg: '#ffedd5', border: '#ea580c', text: '#7c2d12' },
+  walk_in:     { label: 'Walk-in',       bg: '#ccfbf1', border: '#0d9488', text: '#134e4a' },
+  other:       { label: 'Otro',          bg: '#f3f4f6', border: '#6b7280', text: '#1f2937' },
+};
+const STATUS_DOT = {
+  pending:     '#f59e0b',
+  confirmed:   '#3b82f6',
+  checked_in:  '#22c55e',
+  checked_out: '#9ca3af',
+  cancelled:   '#ef4444',
+};
+function sourceStyle(source) {
+  return SOURCE_CONFIG[source] || SOURCE_CONFIG.other;
+}
 const ROOM_STATUS_BG = {
   available:   'bg-white',
   occupied:    'bg-green-50',
@@ -231,17 +257,19 @@ export default function CalendarPage() {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-3 text-xs items-center">
-        {Object.entries(STATUS_STYLES).map(([status, { bg, text }]) => (
-          <div key={status} className="flex items-center gap-1.5">
-            <div className={`w-3.5 h-3.5 rounded border ${bg}`} />
-            <span className="text-gray-500">{STATUS_LABELS[status]}</span>
+      <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs items-center">
+        <span className="text-gray-400 font-medium uppercase tracking-wide text-[10px]">Canal:</span>
+        {Object.entries(SOURCE_CONFIG).map(([key, cfg]) => (
+          <div key={key} className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded border" style={{ backgroundColor: cfg.bg, borderColor: cfg.border }} />
+            <span className="text-gray-500">{cfg.label}</span>
           </div>
         ))}
-        <div className="flex items-center gap-1.5">
-          <div className="w-3.5 h-3.5 rounded border bg-gray-300 border-gray-400" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px)' }} />
+        <div className="flex items-center gap-1 ml-2">
+          <div className="w-3 h-3 rounded border bg-gray-300 border-gray-400" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px)' }} />
           <span className="text-gray-500">Bloqueada</span>
         </div>
+        <span className="text-gray-400 text-[10px] ml-2">· punto = estado</span>
         {canBlock && (
           <button
             onClick={() => { setBlockForm({ roomId: '', startDate: today, endDate: addDays(today, 1), reason: '' }); setBlockModal(true); }}
@@ -374,13 +402,14 @@ export default function CalendarPage() {
                         {/* Reservation bars */}
                         {(room.reservations || []).map(res => {
                           const startIdx = Math.max(0, dayDiff(from, res.checkInDate));
-                          const endIdx   = Math.min(days.length, dayDiff(from, res.checkOutDate));
+                          const endIdx   = Math.min(days.length, dayDiff(from, res.checkOutDate) + 1);
                           if (endIdx <= startIdx) return null;
 
                           const nights    = endIdx - startIdx;
                           const barWidth  = nights * CELL_W - 4;
                           const barLeft   = startIdx * CELL_W + 2;
-                          const style     = STATUS_STYLES[res.status] || STATUS_STYLES.pending;
+                          const srcStyle  = sourceStyle(res.source);
+                          const dotColor  = STATUS_DOT[res.status] || STATUS_DOT.pending;
                           const guestName = res.guest
                             ? `${res.guest.firstName} ${res.guest.lastName}`
                             : `#${res.id}`;
@@ -389,7 +418,7 @@ export default function CalendarPage() {
                           const isDragging = dragGhost?.resId === res.id;
                           const ghostStartIdx = isDragging ? dragGhost.newStartIdx : null;
                           const ghostLeft = ghostStartIdx !== null ? ghostStartIdx * CELL_W + 2 : null;
-                          const ghostWidth = isDragging ? (dragGhost.nights * CELL_W - 4) : barWidth;
+                          const ghostWidth = isDragging ? ((dragGhost.nights + 1) * CELL_W - 4) : barWidth;
 
                           return (
                             <div key={res.id}>
@@ -404,12 +433,20 @@ export default function CalendarPage() {
                                   zIndex: isDragging ? 1 : 2,
                                   opacity: isDragging ? 0.35 : 1,
                                   cursor: isDragging ? 'grabbing' : 'grab',
-                                  transition: isDragging ? 'none' : 'opacity 0.15s'
+                                  transition: isDragging ? 'none' : 'opacity 0.15s',
+                                  backgroundColor: srcStyle.bg,
+                                  borderColor: srcStyle.border,
+                                  color: srcStyle.text,
                                 }}
-                                className={`rounded border ${style.bg} ${style.text} flex items-center px-2 overflow-hidden`}
+                                className="rounded border flex items-center px-2 overflow-hidden gap-1"
                                 onMouseDown={e => { e.stopPropagation(); handleBarMouseDown(e, res, room, startIdx); }}
                                 onClick={e => { if (!dragRef.current?.hasMoved) handleResClick(res, room, e); }}
                               >
+                                <span
+                                  className="w-2 h-2 rounded-full flex-shrink-0 pointer-events-none"
+                                  style={{ backgroundColor: dotColor, minWidth: 8 }}
+                                  title={STATUS_LABELS[res.status]}
+                                />
                                 <span className="text-xs font-medium truncate whitespace-nowrap pointer-events-none">
                                   {barWidth > 60 ? guestName : res.guest?.firstName || '#' + res.id}
                                 </span>

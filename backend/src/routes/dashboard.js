@@ -103,6 +103,20 @@ router.get('/', async (_req, res) => {
       limit: 5
     });
 
+    // Reservaciones por canal de origen (últimos 90 días)
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const sourceStats = await Reservation.findAll({
+      attributes: ['source', [fn('COUNT', col('id')), 'count']],
+      where: {
+        status: { [Op.notIn]: ['cancelled', 'no_show'] },
+        checkInDate: { [Op.gte]: ninetyDaysAgo.toISOString().split('T')[0] }
+      },
+      group: ['source'],
+      order: [[literal('count'), 'DESC']],
+      raw: true
+    });
+
     res.json({
       rooms: {
         total: totalRooms,
@@ -119,7 +133,8 @@ router.get('/', async (_req, res) => {
       todayArrivals,
       todayDepartures,
       recentReservations,
-      kpis: { adr: Math.round(adr * 100) / 100, revpar: Math.round(revpar * 100) / 100 }
+      kpis: { adr: Math.round(adr * 100) / 100, revpar: Math.round(revpar * 100) / 100 },
+      sourceStats
     });
   } catch (error) {
     console.error('Dashboard error:', error);
