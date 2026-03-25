@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { authenticate, authorize } = require('../middleware/auth');
-const { MaintenanceLog, Room } = require('../models');
+const { MaintenanceLog, Room, RoomBlock } = require('../models');
 const logAudit = require('../utils/audit');
 
 router.use(authenticate);
@@ -38,18 +38,35 @@ router.get('/', async (req, res) => {
 // POST /api/maintenance
 router.post('/', async (req, res) => {
   try {
-    const { roomId, type, priority, description } = req.body;
+    const { roomId, type, priority, description, blockStartDate, blockEndDate } = req.body;
     if (!roomId || !description) {
       return res.status(400).json({ error: 'roomId y description son requeridos' });
     }
 
+    let roomBlockId = null;
+
+    // Crear bloqueo en el calendario si se proporcionan fechas
+    if (blockStartDate && blockEndDate) {
+      const block = await RoomBlock.create({
+        roomId,
+        startDate:  blockStartDate,
+        endDate:    blockEndDate,
+        reason:     `Mantenimiento: ${description.substring(0, 80)}`,
+        createdBy:  req.user.id
+      });
+      roomBlockId = block.id;
+    }
+
     const log = await MaintenanceLog.create({
       roomId,
-      reportedBy: req.user.id,
-      type:        type     || 'repair',
-      priority:    priority || 'normal',
+      reportedBy:     req.user.id,
+      type:           type     || 'repair',
+      priority:       priority || 'normal',
       description,
-      status: 'open'
+      status:         'open',
+      blockStartDate: blockStartDate || null,
+      blockEndDate:   blockEndDate   || null,
+      roomBlockId
     });
 
     logAudit(req.user.id, 'create', 'maintenance', log.id, { roomId, type: log.type }, req.ip);
@@ -70,7 +87,14 @@ router.patch('/:id', async (req, res) => {
     if (req.body.status) {
       updates.status = req.body.status;
       if (req.body.status === 'in_progress' && !log.startedAt) updates.startedAt = new Date();
-      if (req.body.status === 'closed') updates.closedAt = new Date();
+      if (req.body.status === 'closed') {
+        updates.closedAt = new Date();
+        // Eliminar el bloqueo del calendario al cerrar
+        if (log.roomBlockId) {
+          await RoomBlock.destroy({ where: { id: log.roomBlockId } });
+          updates.roomBlockId = null;
+        }
+      }
     }
     if (req.body.resolution !== undefined) updates.resolution = req.body.resolution;
     if (req.body.cost       !== undefined) updates.cost       = req.body.cost;

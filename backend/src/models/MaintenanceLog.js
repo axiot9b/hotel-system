@@ -10,8 +10,11 @@ module.exports = (sequelize) => {
     description: { type: DataTypes.TEXT, allowNull: false },
     resolution:  { type: DataTypes.TEXT },
     cost:        { type: DataTypes.DECIMAL(10, 2) },
-    startedAt:   { type: DataTypes.DATE },
-    closedAt:    { type: DataTypes.DATE }
+    startedAt:      { type: DataTypes.DATE },
+    closedAt:       { type: DataTypes.DATE },
+    blockStartDate: { type: DataTypes.DATEONLY, field: 'block_start_date' },
+    blockEndDate:   { type: DataTypes.DATEONLY, field: 'block_end_date' },
+    roomBlockId:    { type: DataTypes.INTEGER,  field: 'room_block_id' }
   }, {
     tableName: 'maintenance_logs',
     underscored: true

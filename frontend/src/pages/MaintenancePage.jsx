@@ -30,7 +30,8 @@ export default function MaintenancePage() {
   const [showCreate, setShowCreate]     = useState(false);
   const [showUpdate, setShowUpdate]     = useState(null); // log object
   const [rooms, setRooms]       = useState([]);
-  const [form, setForm]         = useState({ roomId: '', type: 'repair', priority: 'normal', description: '' });
+  const today = new Date().toISOString().split('T')[0];
+  const [form, setForm]         = useState({ roomId: '', type: 'repair', priority: 'normal', description: '', blockStartDate: today, blockEndDate: '' });
   const [updateForm, setUpdateForm] = useState({ status: '', resolution: '', cost: '' });
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState('');
@@ -65,7 +66,7 @@ export default function MaintenancePage() {
     try {
       await api.post('/maintenance', form);
       setShowCreate(false);
-      setForm({ roomId: '', type: 'repair', priority: 'normal', description: '' });
+      setForm({ roomId: '', type: 'repair', priority: 'normal', description: '', blockStartDate: today, blockEndDate: '' });
       load();
     } catch (err) {
       setError(err.message);
@@ -146,6 +147,7 @@ export default function MaintenancePage() {
                     <th className="px-4 py-3 font-medium">Tipo</th>
                     <th className="px-4 py-3 font-medium">Prioridad</th>
                     <th className="px-4 py-3 font-medium">Descripción</th>
+                    <th className="px-4 py-3 font-medium">Bloqueo</th>
                     <th className="px-4 py-3 font-medium">Estado</th>
                     <th className="px-4 py-3 font-medium">Costo</th>
                     <th className="px-4 py-3 font-medium"></th>
@@ -176,6 +178,11 @@ export default function MaintenancePage() {
                             ✓ {log.resolution}
                           </div>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                        {log.blockStartDate
+                          ? <span className="flex items-center gap-1">🔒 {log.blockStartDate} → {log.blockEndDate}</span>
+                          : <span className="text-gray-300">—</span>}
                       </td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[log.status]}`}>
@@ -259,6 +266,25 @@ export default function MaintenancePage() {
                 <label className="block text-sm font-medium mb-1">Descripción *</label>
                 <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-sm" rows={3} required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Bloquear habitación en calendario</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Desde</label>
+                    <input type="date" value={form.blockStartDate}
+                      onChange={e => setForm({ ...form, blockStartDate: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Hasta</label>
+                    <input type="date" value={form.blockEndDate}
+                      min={form.blockStartDate}
+                      onChange={e => setForm({ ...form, blockEndDate: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2 text-sm" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Opcional — aparecerá bloqueada en el calendario hasta que se cierre el mantenimiento</p>
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowCreate(false)} className="flex-1 border rounded-lg py-2 text-sm">Cancelar</button>

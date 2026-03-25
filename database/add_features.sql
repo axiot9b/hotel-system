@@ -45,3 +45,9 @@ ALTER TABLE reservations
   ADD COLUMN IF NOT EXISTS discount_type   VARCHAR(10) CHECK (discount_type IN ('percent','amount')),
   ADD COLUMN IF NOT EXISTS discount_value  DECIMAL(10,2) NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS discount_reason TEXT;
+
+-- 5. Fechas de bloqueo en mantenimiento
+ALTER TABLE maintenance_logs
+  ADD COLUMN IF NOT EXISTS block_start_date DATE,
+  ADD COLUMN IF NOT EXISTS block_end_date   DATE,
+  ADD COLUMN IF NOT EXISTS room_block_id    INTEGER REFERENCES room_blocks(id) ON DELETE SET NULL;
