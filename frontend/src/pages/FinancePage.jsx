@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { TrendingUp, AlertCircle, BarChart2, Download, BookOpen, Printer } from 'lucide-react';
+import { TrendingUp, AlertCircle, BarChart2, Download, BookOpen, Printer, Receipt, Plus, Trash2, X } from 'lucide-react';
 import { exportCSV } from '../utils/exportCSV';
 
 const fmt = (n) =>
@@ -9,10 +9,20 @@ const fmt = (n) =>
 
 const TABS = [
   { id: 'income',      label: 'Ingresos',            icon: TrendingUp  },
+  { id: 'expenses',    label: 'Gastos',               icon: Receipt     },
   { id: 'receivables', label: 'Cuentas por cobrar',  icon: AlertCircle },
   { id: 'occupancy',   label: 'Ocupación',            icon: BarChart2   },
   { id: 'monthly',     label: 'Cierre mensual',       icon: BookOpen    }
 ];
+
+const EXPENSE_CATEGORIES = {
+  maintenance: { label: 'Mantenimiento', color: 'bg-red-100 text-red-700' },
+  supplies:    { label: 'Suministros',   color: 'bg-blue-100 text-blue-700' },
+  utilities:   { label: 'Servicios',     color: 'bg-yellow-100 text-yellow-700' },
+  salaries:    { label: 'Nómina',        color: 'bg-purple-100 text-purple-700' },
+  marketing:   { label: 'Marketing',     color: 'bg-pink-100 text-pink-700' },
+  other:       { label: 'Otro',          color: 'bg-gray-100 text-gray-700' }
+};
 
 function firstDay() {
   const d = new Date();
@@ -459,6 +469,205 @@ function SCard({ label, value, color, big }) {
   );
 }
 
+// ── Expenses tab ──────────────────────────────────────────────────────────────
+function ExpensesTab() {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+  const [expenses, setExpenses] = useState([]);
+  const [total, setTotal]       = useState(0);
+  const [from, setFrom]         = useState(firstOfMonth);
+  const [to,   setTo]           = useState(todayStr);
+  const [catFilter, setCatFilter] = useState('');
+  const [loading, setLoading]   = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm]         = useState({ date: todayStr, category: 'other', description: '', amount: '' });
+  const [saving, setSaving]     = useState(false);
+  const [error, setError]       = useState('');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ from, to, limit: 100 });
+      if (catFilter) params.set('category', catFilter);
+      const data = await api.get(`/expenses?${params}`);
+      setExpenses(data.expenses);
+      setTotal(data.expenses.reduce((s, e) => s + parseFloat(e.amount), 0));
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  }, [from, to, catFilter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    setSaving(true); setError('');
+    try {
+      await api.post('/expenses', { ...form, amount: parseFloat(form.amount) });
+      setShowForm(false);
+      setForm({ date: todayStr, category: 'other', description: '', amount: '' });
+      load();
+    } catch (err) { setError(err.message); }
+    finally { setSaving(false); }
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm('¿Eliminar este gasto?')) return;
+    await api.delete(`/expenses/${id}`);
+    load();
+  }
+
+  const byCategory = Object.entries(EXPENSE_CATEGORIES).map(([key, cfg]) => ({
+    key, ...cfg,
+    total: expenses.filter(e => e.category === key).reduce((s, e) => s + parseFloat(e.amount), 0)
+  })).filter(c => c.total > 0);
+
+  return (
+    <div className="space-y-5">
+      {/* Filters + new */}
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Desde</label>
+          <input type="date" value={from} onChange={e => setFrom(e.target.value)}
+            className="border rounded-lg px-3 py-1.5 text-sm" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Hasta</label>
+          <input type="date" value={to} onChange={e => setTo(e.target.value)}
+            className="border rounded-lg px-3 py-1.5 text-sm" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Categoría</label>
+          <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+            className="border rounded-lg px-3 py-1.5 text-sm">
+            <option value="">Todas</option>
+            {Object.entries(EXPENSE_CATEGORIES).map(([k, v]) => (
+              <option key={k} value={k}>{v.label}</option>
+            ))}
+          </select>
+        </div>
+        <button onClick={() => setShowForm(true)}
+          className="ml-auto flex items-center gap-2 bg-hotel-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-hotel-700">
+          <Plus className="h-4 w-4" /> Nuevo gasto
+        </button>
+      </div>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="col-span-2 sm:col-span-3 lg:col-span-2 bg-red-50 border border-red-100 rounded-xl p-4">
+          <p className="text-xs text-red-500 font-medium uppercase tracking-wide">Total gastos</p>
+          <p className="text-2xl font-bold text-red-700 mt-1">${fmt(total)}</p>
+        </div>
+        {byCategory.map(c => (
+          <div key={c.key} className="bg-white border border-gray-100 rounded-xl p-3">
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${c.color}`}>{c.label}</span>
+            <p className="text-lg font-bold text-gray-800 mt-1">${fmt(c.total)}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Table */}
+      {loading ? (
+        <div className="text-center py-10 text-gray-400">Cargando...</div>
+      ) : expenses.length === 0 ? (
+        <div className="text-center py-10 text-gray-400">Sin gastos en este período</div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr className="text-left text-gray-500">
+                <th className="px-4 py-3 font-medium">Fecha</th>
+                <th className="px-4 py-3 font-medium">Categoría</th>
+                <th className="px-4 py-3 font-medium">Descripción</th>
+                <th className="px-4 py-3 font-medium text-right">Monto</th>
+                <th className="px-4 py-3 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {expenses.map(e => (
+                <tr key={e.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{e.date}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${EXPENSE_CATEGORIES[e.category]?.color || 'bg-gray-100 text-gray-600'}`}>
+                      {EXPENSE_CATEGORIES[e.category]?.label || e.category}
+                    </span>
+                    {e.maintenanceLogId && <span className="ml-1 text-xs text-gray-400">🔧 auto</span>}
+                  </td>
+                  <td className="px-4 py-3 text-gray-700 max-w-xs truncate">{e.description}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-red-600">${fmt(e.amount)}</td>
+                  <td className="px-4 py-3">
+                    {!e.maintenanceLogId && (
+                      <button onClick={() => handleDelete(e.id)} className="text-gray-300 hover:text-red-500">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot className="bg-gray-50 border-t-2 border-gray-200">
+              <tr>
+                <td colSpan={3} className="px-4 py-3 font-bold text-gray-700">Total</td>
+                <td className="px-4 py-3 text-right font-bold text-red-600">${fmt(total)}</td>
+                <td />
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
+
+      {/* Modal nuevo gasto */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg">Nuevo gasto</h3>
+              <button onClick={() => setShowForm(false)}><X className="h-5 w-5 text-gray-400" /></button>
+            </div>
+            <form onSubmit={handleCreate} className="space-y-4">
+              {error && <div className="bg-red-50 text-red-600 rounded-lg px-3 py-2 text-sm">{error}</div>}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Fecha *</label>
+                  <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-sm" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Monto *</label>
+                  <input type="number" step="0.01" min="0" value={form.amount}
+                    onChange={e => setForm({ ...form, amount: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="0.00" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Categoría</label>
+                <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-sm">
+                  {Object.entries(EXPENSE_CATEGORIES).map(([k, v]) => (
+                    <option key={k} value={k}>{v.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Descripción *</label>
+                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-sm" rows={2} required />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowForm(false)}
+                  className="flex-1 border rounded-lg py-2 text-sm">Cancelar</button>
+                <button type="submit" disabled={saving}
+                  className="flex-1 bg-hotel-600 text-white rounded-lg py-2 text-sm hover:bg-hotel-700 disabled:opacity-50">
+                  {saving ? 'Guardando...' : 'Registrar gasto'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function FinancePage() {
   const [tab, setTab] = useState('income');
@@ -487,6 +696,7 @@ export default function FinancePage() {
       </div>
 
       {tab === 'income'      && <IncomeTab />}
+      {tab === 'expenses'    && <ExpensesTab />}
       {tab === 'receivables' && <ReceivablesTab />}
       {tab === 'occupancy'   && <OccupancyTab />}
       {tab === 'monthly'     && <MonthlyTab />}
@@ -540,6 +750,13 @@ function MonthlyTab() {
       ...data.byRoomType.map(r => [r.room_type, r.reservations + ' reserv.', r.nights_sold + ' noches', '$' + fmt(r.revenue)]),
       ['', '', '', ''],
       ['RESUMEN', '', '', ''],
+      ['', '', '', ''],
+      ['GASTOS', '', '', ''],
+      ...(data.expenses || []).map(e => [EXPENSE_CATEGORIES[e.category]?.label || e.category, e.count + ' registros', '', '-$' + fmt(e.total)]),
+      ['Total gastos', '', '', '-$' + fmt(totalExpenses)],
+      ['Utilidad neta', '', '', '$' + fmt(netProfit)],
+      ['', '', '', ''],
+      ['RESUMEN', '', '', ''],
       ['Reservas nuevas', data.newReservations?.total_created, '', '$' + fmt(data.newReservations?.total_value)],
       ['Reservas canceladas', data.newReservations?.cancelled, '', ''],
       ['Ocupación promedio', data.occupancy?.avg_occupancy_pct + '%', '', ''],
@@ -552,6 +769,8 @@ function MonthlyTab() {
   const inc = data?.income;
   const taxRate = data?.taxRate ?? 0.10;
   const itbms = parseFloat(inc?.net_income || 0) * taxRate;
+  const totalExpenses = parseFloat(data?.expenseSummary?.total_expenses || 0);
+  const netProfit = parseFloat(inc?.net_income || 0) - totalExpenses;
   const totalMethods = data?.byMethod.reduce((s, m) => s + parseFloat(m.gross || 0), 0) || 1;
 
   return (
@@ -600,6 +819,8 @@ function MonthlyTab() {
               <SCard label="Reembolsos"                 value={`-$${fmt(inc?.refunds)}`}     color="red" />
               <SCard label="Ingreso neto"               value={`$${fmt(inc?.net_income)}`}   color="green" big />
               <SCard label={`ITBMS (${Math.round(taxRate * 100)}%)`} value={`$${fmt(itbms)}`} color="amber" />
+              <SCard label="Total gastos"               value={`-$${fmt(totalExpenses)}`}    color="red" />
+              <SCard label="Utilidad neta"              value={`$${fmt(netProfit)}`}          color={netProfit >= 0 ? 'green' : 'red'} big />
             </div>
           </div>
 
@@ -658,6 +879,40 @@ function MonthlyTab() {
               )}
             </div>
           </div>
+
+          {/* Gastos del mes */}
+          {data.expenses?.length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <h4 className="text-sm font-semibold text-gray-700 mb-4">Gastos por categoría</h4>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-400 text-xs border-b">
+                    <th className="pb-2 font-medium">Categoría</th>
+                    <th className="pb-2 font-medium text-right">Registros</th>
+                    <th className="pb-2 font-medium text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {data.expenses.map(e => (
+                    <tr key={e.category}>
+                      <td className="py-2">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${EXPENSE_CATEGORIES[e.category]?.color || 'bg-gray-100 text-gray-600'}`}>
+                          {EXPENSE_CATEGORIES[e.category]?.label || e.category}
+                        </span>
+                      </td>
+                      <td className="py-2 text-right text-gray-600">{e.count}</td>
+                      <td className="py-2 text-right font-semibold text-red-600">${fmt(e.total)}</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 border-gray-200 font-bold">
+                    <td className="py-2 text-gray-700">Total gastos</td>
+                    <td />
+                    <td className="py-2 text-right text-red-600">${fmt(totalExpenses)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {/* Resumen operativo */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">

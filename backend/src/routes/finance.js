@@ -243,6 +243,24 @@ router.get('/monthly', async (req, res) => {
       WHERE balance > 0.009
     `, { replacements: { endDate }, type: QueryTypes.SELECT });
 
+    // ── Gastos del mes ────────────────────────────────────────────────────────
+    const expenses = await sequelize.query(`
+      SELECT
+        category,
+        COUNT(*)        AS count,
+        SUM(amount)     AS total
+      FROM expenses
+      WHERE created_at >= :startDate AND created_at < :endDate
+      GROUP BY category
+      ORDER BY total DESC
+    `, { replacements: { startDate, endDate }, type: QueryTypes.SELECT });
+
+    const [expenseSummary] = await sequelize.query(`
+      SELECT COALESCE(SUM(amount), 0) AS total_expenses
+      FROM expenses
+      WHERE created_at >= :startDate AND created_at < :endDate
+    `, { replacements: { startDate, endDate }, type: QueryTypes.SELECT });
+
     const taxRate = parseFloat(process.env.HOTEL_TAX_RATE || 0.10);
     res.json({
       year, month, startDate, endDate,
@@ -250,6 +268,8 @@ router.get('/monthly', async (req, res) => {
       income,
       byMethod,
       byRoomType,
+      expenses,
+      expenseSummary,
       newReservations: newRes,
       occupancy: occupancy[0] ?? { avg_occupancy_pct: 0 },
       receivables: receivables[0] ?? { count: 0, total: 0 }

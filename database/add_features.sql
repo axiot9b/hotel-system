@@ -46,7 +46,22 @@ ALTER TABLE reservations
   ADD COLUMN IF NOT EXISTS discount_value  DECIMAL(10,2) NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS discount_reason TEXT;
 
--- 5. Fechas de bloqueo en mantenimiento
+-- 5. Tabla de gastos operativos
+CREATE TABLE IF NOT EXISTS expenses (
+    id                  SERIAL PRIMARY KEY,
+    date                DATE NOT NULL,
+    category            VARCHAR(20) NOT NULL DEFAULT 'other'
+                          CHECK (category IN ('maintenance','supplies','utilities','salaries','marketing','other')),
+    description         TEXT NOT NULL,
+    amount              DECIMAL(10,2) NOT NULL,
+    created_by          INTEGER REFERENCES users(id),
+    maintenance_log_id  INTEGER REFERENCES maintenance_logs(id) ON DELETE SET NULL,
+    created_at          TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_expenses_date     ON expenses(date);
+CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+
+-- 6. Fechas de bloqueo en mantenimiento
 ALTER TABLE maintenance_logs
   ADD COLUMN IF NOT EXISTS block_start_date DATE,
   ADD COLUMN IF NOT EXISTS block_end_date   DATE,

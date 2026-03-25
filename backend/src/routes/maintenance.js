@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { authenticate, authorize } = require('../middleware/auth');
-const { MaintenanceLog, Room, RoomBlock } = require('../models');
+const { MaintenanceLog, Room, RoomBlock, Expense } = require('../models');
 const logAudit = require('../utils/audit');
 
 router.use(authenticate);
@@ -93,6 +93,18 @@ router.patch('/:id', async (req, res) => {
         if (log.roomBlockId) {
           await RoomBlock.destroy({ where: { id: log.roomBlockId } });
           updates.roomBlockId = null;
+        }
+        // Registrar gasto automáticamente si tiene costo
+        const cost = parseFloat(req.body.cost || log.cost || 0);
+        if (cost > 0) {
+          await Expense.create({
+            date:             new Date().toISOString().split('T')[0],
+            category:         'maintenance',
+            description:      log.description,
+            amount:           cost,
+            createdBy:        req.user.id,
+            maintenanceLogId: log.id
+          });
         }
       }
     }

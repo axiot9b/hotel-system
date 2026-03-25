@@ -36,6 +36,7 @@ const DailyCash = require('./DailyCash')(sequelize);
 const MaintenanceLog = require('./MaintenanceLog')(sequelize);
 const RoomBlock = require('./RoomBlock')(sequelize);
 const RoomRate  = require('./RoomRate')(sequelize);
+const Expense   = require('./Expense')(sequelize);
 
 // Relaciones
 RoomType.hasMany(Room, { foreignKey: 'roomTypeId', as: 'rooms' });
@@ -97,5 +98,6 @@ module.exports = {
   DailyCash,
   MaintenanceLog,
   RoomBlock,
-  RoomRate
+  RoomRate,
+  Expense
 };

@@ -23,6 +23,7 @@ const maintenanceRoutes  = require('./routes/maintenance');
 const roomBlocksRoutes   = require('./routes/room-blocks');
 const roomRatesRoutes    = require('./routes/room-rates');
 const searchRoutes       = require('./routes/search');
+const expensesRoutes     = require('./routes/expenses');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/room-blocks', roomBlocksRoutes);
 app.use('/api/room-rates',  roomRatesRoutes);
 app.use('/api/search',      searchRoutes);
+app.use('/api/expenses',    expensesRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
