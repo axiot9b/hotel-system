@@ -139,7 +139,9 @@ export default function ReservationDetailPage() {
   if (loading) return <div className="flex items-center justify-center h-64 text-gray-400">Cargando...</div>;
   if (!res) return <div className="text-red-500">Reservación no encontrada</div>;
 
-  const totalCharges = parseFloat(res.totalAmount) + (res.extraCharges?.reduce((s, c) => s + parseFloat(c.amount), 0) || 0);
+  const subtotal = parseFloat(res.totalAmount) + (res.extraCharges?.reduce((s, c) => s + parseFloat(c.amount), 0) || 0);
+  const itbms = subtotal * 0.10;
+  const totalCharges = subtotal + itbms;
   const totalPaid = res.payments?.reduce((s, p) => p.paymentType === 'refund' ? s - parseFloat(p.amount) : s + parseFloat(p.amount), 0) || 0;
   const balance = totalCharges - totalPaid;
 
@@ -249,12 +251,30 @@ export default function ReservationDetailPage() {
               </p>
             )}
             <p className="text-gray-600">Hospedaje: ${parseFloat(res.totalAmount).toLocaleString()}</p>
-            <p className="text-gray-600">Cargos extra: ${(totalCharges - parseFloat(res.totalAmount)).toLocaleString()}</p>
-            <p className="text-gray-600">Pagado: ${totalPaid.toLocaleString()}</p>
-            <div className="pt-2 border-t mt-2">
-              <p className={`font-bold text-lg ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                Balance: ${balance.toLocaleString()}
-              </p>
+            {res.extraCharges?.length > 0 && (
+              <p className="text-gray-600">Cargos extra: ${(subtotal - parseFloat(res.totalAmount)).toLocaleString()}</p>
+            )}
+            <div className="pt-2 border-t mt-2 space-y-1">
+              <div className="flex justify-between text-gray-600 text-sm">
+                <span>Subtotal</span>
+                <span>${subtotal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-gray-600 text-sm">
+                <span>ITBMS (10%)</span>
+                <span>${itbms.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between font-semibold text-gray-900 text-sm border-t pt-1">
+                <span>Total</span>
+                <span>${totalCharges.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-gray-600 text-sm">
+                <span>Pagado</span>
+                <span className="text-green-700">${totalPaid.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between font-bold text-base border-t pt-1">
+                <span>Balance</span>
+                <span className={balance > 0 ? 'text-red-600' : 'text-green-600'}>${Math.abs(balance).toLocaleString()}</span>
+              </div>
             </div>
           </div>
         </div>
