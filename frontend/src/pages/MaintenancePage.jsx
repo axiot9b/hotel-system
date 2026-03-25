@@ -31,7 +31,7 @@ export default function MaintenancePage() {
   const [showUpdate, setShowUpdate]     = useState(null); // log object
   const [rooms, setRooms]       = useState([]);
   const today = new Date().toISOString().split('T')[0];
-  const [form, setForm]         = useState({ roomId: '', type: 'repair', priority: 'normal', description: '', blockStartDate: today, blockEndDate: '' });
+  const [form, setForm]         = useState({ roomId: '', type: 'repair', priority: 'normal', description: '', blockStartDate: today, blockEndDate: '', singleDay: false });
   const [updateForm, setUpdateForm] = useState({ status: '', resolution: '', cost: '' });
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState('');
@@ -64,9 +64,16 @@ export default function MaintenancePage() {
     e.preventDefault();
     setSaving(true); setError('');
     try {
-      await api.post('/maintenance', form);
+      const payload = { ...form };
+      if (payload.singleDay && payload.blockStartDate) {
+        const d = new Date(payload.blockStartDate + 'T00:00:00');
+        d.setDate(d.getDate() + 1);
+        payload.blockEndDate = d.toISOString().split('T')[0];
+      }
+      delete payload.singleDay;
+      await api.post('/maintenance', payload);
       setShowCreate(false);
-      setForm({ roomId: '', type: 'repair', priority: 'normal', description: '', blockStartDate: today, blockEndDate: '' });
+      setForm({ roomId: '', type: 'repair', priority: 'normal', description: '', blockStartDate: today, blockEndDate: '', singleDay: false });
       load();
     } catch (err) {
       setError(err.message);
@@ -181,7 +188,9 @@ export default function MaintenancePage() {
                       </td>
                       <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
                         {log.blockStartDate
-                          ? <span className="flex items-center gap-1">🔒 {log.blockStartDate} → {log.blockEndDate}</span>
+                          ? log.blockStartDate === log.blockEndDate || !log.blockEndDate
+                            ? <span className="flex items-center gap-1">🔒 {log.blockStartDate}</span>
+                            : <span className="flex items-center gap-1">🔒 {log.blockStartDate} → {log.blockEndDate}</span>
                           : <span className="text-gray-300">—</span>}
                       </td>
                       <td className="px-4 py-3">
@@ -268,21 +277,31 @@ export default function MaintenancePage() {
                   className="w-full border rounded-lg px-3 py-2 text-sm" rows={3} required />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Bloquear habitación en calendario</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium">Bloquear habitación en calendario</label>
+                  <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
+                    <input type="checkbox" checked={form.singleDay}
+                      onChange={e => setForm({ ...form, singleDay: e.target.checked, blockEndDate: '' })}
+                      className="rounded" />
+                    Solo un día
+                  </label>
+                </div>
+                <div className={`grid gap-3 ${form.singleDay ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Desde</label>
+                    <label className="block text-xs text-gray-500 mb-1">{form.singleDay ? 'Fecha' : 'Desde'}</label>
                     <input type="date" value={form.blockStartDate}
                       onChange={e => setForm({ ...form, blockStartDate: e.target.value })}
                       className="w-full border rounded-lg px-3 py-2 text-sm" />
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Hasta</label>
-                    <input type="date" value={form.blockEndDate}
-                      min={form.blockStartDate}
-                      onChange={e => setForm({ ...form, blockEndDate: e.target.value })}
-                      className="w-full border rounded-lg px-3 py-2 text-sm" />
-                  </div>
+                  {!form.singleDay && (
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Hasta</label>
+                      <input type="date" value={form.blockEndDate}
+                        min={form.blockStartDate}
+                        onChange={e => setForm({ ...form, blockEndDate: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-gray-400 mt-1">Opcional — aparecerá bloqueada en el calendario hasta que se cierre el mantenimiento</p>
               </div>
