@@ -33,8 +33,11 @@ export default function InvoicePage() {
     <div className="flex items-center justify-center h-screen text-red-500">Reservación no encontrada</div>
   );
 
-  const totalCharges = parseFloat(res.totalAmount)
+  const TAX_RATE = 0.10;
+  const subtotal = parseFloat(res.totalAmount)
     + (res.extraCharges?.reduce((s, c) => s + parseFloat(c.amount), 0) || 0);
+  const itbms = subtotal * TAX_RATE;
+  const totalCharges = subtotal + itbms;
   const totalPaid = res.payments?.reduce(
     (s, p) => p.paymentType === 'refund' ? s - parseFloat(p.amount) : s + parseFloat(p.amount), 0
   ) || 0;
@@ -132,8 +135,16 @@ export default function InvoicePage() {
             ))}
           </tbody>
           <tfoot>
+            <tr className="border-t border-gray-200">
+              <td className="py-2 text-gray-600 pl-2">Subtotal</td>
+              <td className="py-2 text-right text-gray-600">${fmt(subtotal)}</td>
+            </tr>
+            <tr className="border-t border-gray-200">
+              <td className="py-2 text-gray-600 pl-2">ITBMS (10%)</td>
+              <td className="py-2 text-right text-gray-600">${fmt(itbms)}</td>
+            </tr>
             <tr className="border-t-2 border-gray-200 bg-gray-50">
-              <td className="py-3 font-bold text-gray-900 pl-2">Total Cargos</td>
+              <td className="py-3 font-bold text-gray-900 pl-2">Total</td>
               <td className="py-3 text-right font-bold text-gray-900">${fmt(totalCharges)}</td>
             </tr>
           </tfoot>
@@ -163,8 +174,16 @@ export default function InvoicePage() {
         {/* Balance summary */}
         <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-600">Total cargos:</span>
-            <span className="font-medium">${fmt(totalCharges)}</span>
+            <span className="text-gray-600">Subtotal:</span>
+            <span className="font-medium">${fmt(subtotal)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">ITBMS (10%):</span>
+            <span className="font-medium">${fmt(itbms)}</span>
+          </div>
+          <div className="flex justify-between border-t border-gray-200 pt-2">
+            <span className="text-gray-600">Total:</span>
+            <span className="font-semibold">${fmt(totalCharges)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Total pagado:</span>

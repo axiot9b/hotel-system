@@ -531,6 +531,7 @@ function MonthlyTab() {
       ['Ingreso bruto', '', '', '$' + fmt(data.income?.gross_income)],
       ['Reembolsos', '', '', '-$' + fmt(data.income?.refunds)],
       ['Ingreso neto', '', '', '$' + fmt(data.income?.net_income)],
+      [`ITBMS (${Math.round(taxRate * 100)}%)`, '', '', '$' + fmt(itbms)],
       ['', '', '', ''],
       ['POR MÉTODO DE PAGO', '', '', ''],
       ...data.byMethod.map(m => [METHOD_LABELS[m.payment_method] || m.payment_method, '', m.count + ' transacciones', '$' + fmt(m.gross)]),
@@ -549,6 +550,8 @@ function MonthlyTab() {
   }
 
   const inc = data?.income;
+  const taxRate = data?.taxRate ?? 0.10;
+  const itbms = parseFloat(inc?.net_income || 0) * taxRate;
   const totalMethods = data?.byMethod.reduce((s, m) => s + parseFloat(m.gross || 0), 0) || 1;
 
   return (
@@ -593,10 +596,10 @@ function MonthlyTab() {
           <div>
             <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Ingresos — {MONTHS_ES[month - 1]} {year}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <SCard label="Ingreso bruto"   value={`$${fmt(inc?.gross_income)}`} color="hotel" big />
-              <SCard label="Reembolsos"      value={`-$${fmt(inc?.refunds)}`}     color="red" />
-              <SCard label="Ingreso neto"    value={`$${fmt(inc?.net_income)}`}   color="green" big />
-              <SCard label="Transacciones"   value={inc?.payment_count || 0} />
+              <SCard label="Ingreso bruto"              value={`$${fmt(inc?.gross_income)}`} color="hotel" big />
+              <SCard label="Reembolsos"                 value={`-$${fmt(inc?.refunds)}`}     color="red" />
+              <SCard label="Ingreso neto"               value={`$${fmt(inc?.net_income)}`}   color="green" big />
+              <SCard label={`ITBMS (${Math.round(taxRate * 100)}%)`} value={`$${fmt(itbms)}`} color="amber" />
             </div>
           </div>
 

@@ -199,6 +199,8 @@ export default function ReservationsPage() {
     ? (parseFloat(form.discountValue) || 0)
     : 0;
   const estimatedTotal = Math.max(0, baseTotal - discountAmt);
+  const estimatedItbms = estimatedTotal * 0.10;
+  const estimatedGrandTotal = estimatedTotal + estimatedItbms;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -642,9 +644,17 @@ export default function ReservationsPage() {
                       <span>-${discountAmt.toLocaleString()}</span>
                     </div>
                   )}
-                  <div className="flex justify-between font-bold text-hotel-800 border-t border-hotel-100 pt-1">
-                    <span>Total</span>
+                  <div className="flex justify-between text-gray-600 border-t border-hotel-100 pt-1">
+                    <span>Subtotal</span>
                     <span>${estimatedTotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>ITBMS (10%)</span>
+                    <span>${estimatedItbms.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-hotel-800 border-t border-hotel-100 pt-1">
+                    <span>Total con ITBMS</span>
+                    <span>${estimatedGrandTotal.toLocaleString()}</span>
                   </div>
                 </div>
               )}

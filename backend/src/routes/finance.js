@@ -243,8 +243,10 @@ router.get('/monthly', async (req, res) => {
       WHERE balance > 0.009
     `, { replacements: { endDate }, type: QueryTypes.SELECT });
 
+    const taxRate = parseFloat(process.env.HOTEL_TAX_RATE || 0.10);
     res.json({
       year, month, startDate, endDate,
+      taxRate,
       income,
       byMethod,
       byRoomType,
