@@ -57,17 +57,31 @@ router.post('/', async (req, res) => {
       roomBlockId = block.id;
     }
 
-    const log = await MaintenanceLog.create({
-      roomId,
-      reportedBy:     req.user.id,
-      type:           type     || 'repair',
-      priority:       priority || 'normal',
-      description,
-      status:         'open',
-      blockStartDate: blockStartDate || null,
-      blockEndDate:   blockEndDate   || null,
-      roomBlockId
-    });
+    // Intentar con las columnas de bloqueo; si no existen en BD, crear sin ellas
+    let log;
+    try {
+      log = await MaintenanceLog.create({
+        roomId,
+        reportedBy:     req.user.id,
+        type:           type     || 'repair',
+        priority:       priority || 'normal',
+        description,
+        status:         'open',
+        blockStartDate: blockStartDate || null,
+        blockEndDate:   blockEndDate   || null,
+        roomBlockId
+      });
+    } catch (colErr) {
+      // Columnas nuevas aún no migradas — crear sin ellas
+      log = await MaintenanceLog.create({
+        roomId,
+        reportedBy: req.user.id,
+        type:       type     || 'repair',
+        priority:   priority || 'normal',
+        description,
+        status:     'open'
+      });
+    }
 
     logAudit(req.user.id, 'create', 'maintenance', log.id, { roomId, type: log.type }, req.ip);
     res.status(201).json(log);
