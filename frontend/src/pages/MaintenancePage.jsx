@@ -55,7 +55,7 @@ export default function MaintenancePage() {
 
   useEffect(() => {
     api.get('/rooms?limit=200')
-      .then(d => setRooms(d.rooms || []))
+      .then(d => setRooms(Array.isArray(d) ? d : []))
       .catch(() => {});
   }, []);
 

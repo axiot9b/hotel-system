@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel System — Presentación</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #fff; overflow: hidden; height: 100vh; }
+
+  /* ── Slides ── */
+  .slide { display: none; height: 100vh; padding: 48px 64px; flex-direction: column; justify-content: center; animation: fadeIn .4s ease; }
+  .slide.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Navigation ── */
+  .nav { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; z-index: 100; }
+  .nav button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 24px; border-radius: 999px; cursor: pointer; font-size: 14px; transition: all .2s; }
+  .nav button:hover { background: rgba(255,255,255,0.2); }
+  .nav button:disabled { opacity: 0.3; cursor: default; }
+  .nav .counter { color: rgba(255,255,255,0.5); font-size: 13px; min-width: 60px; text-align: center; }
+  .dot-nav { display: flex; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.25); cursor: pointer; transition: all .2s; }
+  .dot.active { background: #fff; width: 20px; border-radius: 3px; }
+
+  /* ── Typography ── */
+  .tag { display: inline-block; background: rgba(99,102,241,.25); color: #a5b4fc; border: 1px solid rgba(99,102,241,.4); border-radius: 999px; font-size: 12px; font-weight: 600; padding: 4px 14px; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 16px; }
+  h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.1; }
+  h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 700; margin-bottom: 8px; }
+  .sub { color: rgba(255,255,255,0.55); font-size: clamp(0.9rem, 1.5vw, 1.1rem); line-height: 1.6; max-width: 640px; }
+
+  /* ── Colors ── */
+  .accent { color: #818cf8; }
+  .green  { color: #34d399; }
+  .amber  { color: #fbbf24; }
+  .rose   { color: #fb7185; }
+  .blue   { color: #60a5fa; }
+  .purple { color: #c084fc; }
+
+  /* ── Slide 1: Cover ── */
+  .cover { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%); }
+  .cover-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+  .hotel-icon { font-size: 80px; margin-bottom: 24px; }
+  .cover-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
+  .cover-stat { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 20px; }
+  .cover-stat .num { font-size: 2rem; font-weight: 800; color: #818cf8; }
+  .cover-stat .lbl { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 4px; }
+  .cover-visual { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 20px; padding: 28px; }
+  .mock-bar { height: 10px; border-radius: 999px; margin: 8px 0; }
+  .mock-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  .mock-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .mock-line { height: 8px; border-radius: 4px; background: rgba(255,255,255,.1); }
+
+  /* ── Cards grid ── */
+  .cards { display: grid; gap: 16px; margin-top: 24px; }
+  .cards-2 { grid-template-columns: repeat(2, 1fr); }
+  .cards-3 { grid-template-columns: repeat(3, 1fr); }
+  .cards-4 { grid-template-columns: repeat(4, 1fr); }
+  .card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 22px; transition: border-color .2s; }
+  .card:hover { border-color: rgba(255,255,255,.25); }
+  .card-icon { font-size: 28px; margin-bottom: 10px; }
+  .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+  .card p  { font-size: 0.82rem; color: rgba(255,255,255,.5); line-height: 1.5; }
+  .card.highlight { background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(139,92,246,.1)); border-color: rgba(99,102,241,.4); }
+
+  /* ── Two column layout ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; margin-top: 24px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; align-items: start; margin-top: 24px; }
+
+  /* ── Flow diagram ── */
+  .flow { display: flex; align-items: center; gap: 0; margin-top: 28px; flex-wrap: wrap; }
+  .flow-step { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 16px 20px; text-align: center; min-width: 120px; }
+  .flow-step .icon { font-size: 24px; margin-bottom: 6px; }
+  .flow-step .lbl { font-size: 12px; font-weight: 600; }
+  .flow-step .sub-lbl { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 2px; }
+  .flow-arrow { font-size: 20px; color: rgba(255,255,255,.3); margin: 0 6px; }
+  .flow-step.s1 { border-color: #fbbf24; background: rgba(251,191,36,.08); }
+  .flow-step.s2 { border-color: #60a5fa; background: rgba(96,165,250,.08); }
+  .flow-step.s3 { border-color: #34d399; background: rgba(52,211,153,.08); }
+  .flow-step.s4 { border-color: #c084fc; background: rgba(192,132,252,.08); }
+  .flow-step.s5 { border-color: #fb7185; background: rgba(251,113,133,.08); }
+
+  /* ── Role list ── */
+  .role-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .role-item { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,.05); border-radius: 12px; padding: 14px 18px; }
+  .role-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+
+  /* ── OTA colors ── */
+  .ota-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+  .ota-chip { border-radius: 12px; padding: 12px; text-align: center; font-size: 12px; font-weight: 600; border: 1px solid; }
+
+  /* ── Feature list ── */
+  .feat-list { display: flex; flex-direction: column; gap: 10px; }
+  .feat-item { display: flex; align-items: flex-start; gap: 12px; }
+  .feat-check { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+  .feat-item p { font-size: 0.88rem; color: rgba(255,255,255,.7); line-height: 1.4; }
+  .feat-item strong { color: #fff; }
+
+  /* ── Calendar mock ── */
+  .cal-mock { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 16px; margin-top: 16px; overflow: hidden; }
+  .cal-header { display: flex; gap: 4px; margin-bottom: 8px; }
+  .cal-day { flex: 1; text-align: center; font-size: 10px; color: rgba(255,255,255,.4); padding: 4px; }
+  .cal-row { display: flex; align-items: center; gap: 4px; margin: 4px 0; position: relative; }
+  .cal-room { font-size: 10px; color: rgba(255,255,255,.4); width: 36px; flex-shrink: 0; }
+  .cal-cells { display: flex; flex: 1; gap: 2px; position: relative; height: 28px; }
+  .cal-cell { flex: 1; background: rgba(255,255,255,.04); border-radius: 4px; height: 100%; }
+  .cal-bar { position: absolute; height: 100%; border-radius: 6px; display: flex; align-items: center; padding: 0 8px; font-size: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; border: 1px solid; }
+
+  /* ── Dashboard mock ── */
+  .dash-mock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
+  .dash-card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 14px; }
+  .dash-card .val { font-size: 1.5rem; font-weight: 800; }
+  .dash-card .lbl { font-size: 10px; color: rgba(255,255,255,.4); margin-top: 2px; }
+
+  /* ── Source chart mock ── */
+  .source-bar { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+  .source-name { font-size: 11px; color: rgba(255,255,255,.6); width: 90px; flex-shrink: 0; }
+  .source-track { flex: 1; background: rgba(255,255,255,.08); border-radius: 999px; height: 16px; overflow: hidden; }
+  .source-fill { height: 100%; border-radius: 999px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 10px; font-weight: 700; color: #fff; }
+  .source-count { font-size: 11px; color: rgba(255,255,255,.5); width: 24px; text-align: right; }
+
+  /* ── Finance mock ── */
+  .fin-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .fin-tab { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: default; }
+  .fin-tab.active { background: rgba(99,102,241,.3); color: #a5b4fc; }
+  .fin-tab.inactive { background: rgba(255,255,255,.05); color: rgba(255,255,255,.4); }
+
+  /* ── Slide backgrounds ── */
+  .bg-rooms    { background: linear-gradient(135deg, #0f172a, #042f2e); }
+  .bg-guests   { background: linear-gradient(135deg, #0f172a, #1c1917); }
+  .bg-calendar { background: linear-gradient(135deg, #0f172a, #1e1b4b); }
+  .bg-finance  { background: linear-gradient(135deg, #0f172a, #1a0f2e); }
+  .bg-ota      { background: linear-gradient(135deg, #0f172a, #0c1a3d); }
+  .bg-roles    { background: linear-gradient(135deg, #0f172a, #1c0f0f); }
+  .bg-flow     { background: linear-gradient(135deg, #0f172a, #0d1f0d); }
+  .bg-end      { background: linear-gradient(135deg, #0f172a, #1e1b4b); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1: PORTADA -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide cover active" id="s1">
+  <div class="cover-grid">
+    <div>
+      <div class="hotel-icon">🏨</div>
+      <div class="tag">Sistema de Gestión Hotelera</div>
+      <h1>Hotel <span class="accent">System</span></h1>
+      <p class="sub" style="margin-top:16px;">Plataforma completa para administrar habitaciones, huéspedes, reservaciones, finanzas y canales OTA desde un solo lugar.</p>
+      <div class="cover-stats">
+        <div class="cover-stat"><div class="num">10+</div><div class="lbl">Módulos</div></div>
+        <div class="cover-stat"><div class="num">5</div><div class="lbl">Roles de usuario</div></div>
+        <div class="cover-stat"><div class="num">8+</div><div class="lbl">Canales OTA</div></div>
+        <div class="cover-stat"><div class="num">∞</div><div class="lbl">Habitaciones</div></div>
+      </div>
+    </div>
+    <div class="cover-visual">
+      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:16px;font-weight:600;">DASHBOARD EN TIEMPO REAL</div>
+      <div class="dash-mock" style="grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="dash-card"><div class="val green">72%</div><div class="lbl">Ocupación</div></div>
+        <div class="dash-card"><div class="val amber">$8,400</div><div class="lbl">Ingresos hoy</div></div>
+        <div class="dash-card"><div class="val blue">4</div><div class="lbl">Check-ins hoy</div></div>
+        <div class="dash-card"><div class="val purple">12</div><div class="lbl">Huéspedes activos</div></div>
+      </div>
+      <div style="margin-top:16px;">
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:8px;">CANAL DE ORIGEN</div>
+        <div class="source-bar"><span class="source-name">🟢 Directo</span><div class="source-track"><div class="source-fill" style="width:45%;background:#16a34a;">45%</div></div><span class="source-count">18</span></div>
+        <div class="source-bar"><span class="source-name">🔵 Booking.com</span><div class="source-track"><div class="source-fill" style="width:30%;background:#1d4ed8;">30%</div></div><span class="source-count">12</span></div>
+        <div class="source-bar"><span class="source-name">🔴 Airbnb</span><div class="source-track"><div class="source-fill" style="width:18%;background:#e11d48;">18%</div></div><span class="source-count">7</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2: MÓDULOS -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide" id="s2" style="background:linear-gradient(135deg,#0f172a,#0d1f3c);">
+  <div class="tag">Visión general</div>
+  <h2>Todos los módulos del sistema</h2>
+  <p class="sub">Cada área del hotel tiene su propio módulo integrado.</p>
+  <div class="cards cards-4" style="margin-top:28px;">
+    <div class="card highlight">
+      <div class="card-icon">📊</div>
+      <h3 class="accent">Dashboard</h3>
+      <p>Métricas en tiempo real, ocupación, ingresos del día y llegadas.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛏️</div>
+      <h3>Habitaciones</h3>
+      <p>Gestión de tipos, estado de cada habitación y mantenimiento.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">👤</div>
+      <h3>Huéspedes</h3>
+      <p>Registro completo con historial de estancias y contacto.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📋</div>
+      <h3>Reservaciones</h3>
+      <p>Ciclo completo: pendiente → check-in → check-out.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📅</div>
+      <h3>Calendario</h3>
+      <p>Vista visual de disponibilidad con colores por canal OTA.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <h3>Finanzas</h3>
+      <p>Pagos, cuentas por cobrar y cierre mensual contable.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h3>Canales OTA</h3>
+      <p>Registro de reservas de Booking, Airbnb, Expedia y más.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <h3>Búsqueda Global</h3>
+      <p>Ctrl+K para buscar huéspedes, habitaciones o reservas al instante.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3: ROLES DE USUARIO -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide bg-roles" id="s3">
+  <div class="two-col">
+    <div>
+      <div class="tag">Acceso y seguridad</div>
+      <h2>Roles de Usuario</h2>
+      <p class="sub">Cada empleado accede solo a lo que necesita según su rol.</p>
+      <div class="role-list" style="margin-top:24px;">
+        <div class="role-item">
+          <span class="role-badge" style="background:rgba(239,68,68,.2);color:#fca5a5;border:1px solid rgba(239,68,68,.3);">Admin</span>
+          <div>
+            <div style="font-size:0.9rem;font-weight:600;">Administrador</div>
+            <div style="font-size:0.8rem;color:rgba(255,255,255,.5);">Acceso total: usuarios, configuración, reportes, tarifas</div>
+          </div>
+        </div>
+        <div class="role-item">
+          <span class="role-badge" style="background:rgba(99,102,241,.2);color:#a5b4fc;border:1px solid rgba(99,102,241,.3);">Manager</span>
+          <div>
+            <div style="font-size:0.9rem;font-weight:600;">Gerente</div>
+            <div style="font-size:0.8rem;color:rgba(255,255,255,.5);">Reportes, tarifas, estadísticas y aprobaciones</div>
+          </div>
+        </div>
+        <div class="role-item">
+          <span class="role-badge" style="background:rgba(59,130,246,.2);color:#93c5fd;border:1px solid rgba(59,130,246,.3);">Recep.</span>
+          <div>
+            <div style="font-size:0.9rem;font-weight:600;">Recepcionista</div>
+            <div style="font-size:0.8rem;color:rgba(255,255,255,.5);">Reservaciones, check-in, check-out, huéspedes</div>
+          </div>
+        </div>
+        <div class="role-item">
+          <span class="role-badge" style="background:rgba(16,185,129,.2);color:#6ee7b7;border:1px solid rgba(16,185,129,.3);">Contab.</span>
+          <div>
+            <div style="font-size:0.9rem;font-weight:600;">Contabilidad</div>
+            <div style="font-size:0.8rem;color:rgba(255,255,255,.5);">Pagos, caja diaria, cierre mensual y facturas</div>
+          </div>
+        </div>
+        <div class="role-item">
+          <span class="role-badge" style="background:rgba(245,158,11,.2);color:#fcd34d;border:1px solid rgba(245,158,11,.3);">House.</span>
+          <div>
+            <div style="font-size:0.9rem;font-weight:600;">Housekeeping</div>
+            <div style="font-size:0.8rem;color:rgba(255,255,255,.5);">Tareas de limpieza y estado de habitaciones</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:16px;font-weight:600;">PANTALLA DE ACCESO</div>
+        <div style="background:linear-gradient(135deg,#1e1b4b,#312e81);border-radius:16px;padding:28px;text-align:center;">
+          <div style="font-size:40px;margin-bottom:12px;">🏨</div>
+          <div style="font-weight:700;font-size:1.1rem;margin-bottom:4px;">Hotel System</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:20px;">Sistema de Gestión Hotelera</div>
+          <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;color:rgba(255,255,255,.5);text-align:left;">👤 admin</div>
+          <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px;margin-bottom:16px;font-size:12px;color:rgba(255,255,255,.5);text-align:left;">🔒 ••••••••</div>
+          <div style="background:#4f46e5;border-radius:8px;padding:10px;font-size:13px;font-weight:600;">Iniciar Sesión</div>
+        </div>
+        <div style="margin-top:16px;font-size:12px;color:rgba(255,255,255,.4);text-align:center;">Token JWT · Sesión de 8 horas · Acceso restringido por rol</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4: DASHBOARD -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide" style="background:linear-gradient(135deg,#0f172a,#0d2d1a);" id="s4">
+  <div class="tag">Módulo 1</div>
+  <h2>📊 Dashboard</h2>
+  <p class="sub">Vista general del hotel en tiempo real. Todo en una sola pantalla.</p>
+  <div class="two-col" style="margin-top:20px;">
+    <div>
+      <div class="feat-list">
+        <div class="feat-item">
+          <div class="feat-check" style="background:rgba(52,211,153,.2);color:#34d399;">✓</div>
+          <p><strong>KPIs en tiempo real:</strong> Ocupación, ingresos del día, huéspedes activos, próximas reservas</p>
+        </div>
+        <div class="feat-item">
+          <div class="feat-check" style="background:rgba(52,211,153,.2);color:#34d399;">✓</div>
+          <p><strong>ADR y RevPAR:</strong> Tarifa diaria promedio e ingreso por habitación disponible del mes</p>
+        </div>
+        <div class="feat-item">
+          <div class="feat-check" style="background:rgba(52,211,153,.2);color:#34d399;">✓</div>
+          <p><strong>Llegadas y salidas del día:</strong> Lista con botón directo de check-in / check-out</p>
+        </div>
+        <div class="feat-item">
+          <div class="feat-check" style="background:rgba(52,211,153,.2);color:#34d399;">✓</div>
+          <p><strong>Gráfica de canal de origen:</strong> Muestra de dónde vienen las reservas (Booking, Airbnb, directo...)</p>
+        </div>
+        <div class="feat-item">
+          <div class="feat-check" style="background:rgba(52,211,153,.2);color:#34d399;">✓</div>
+          <p><strong>Estado de habitaciones:</strong> Disponibles, ocupadas, limpieza, mantenimiento</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="dash-mock">
+        <div class="dash-card"><div class="val green">68%</div><div class="lbl">Ocupación</div></div>
+        <div class="dash-card"><div class="val amber">$12,500</div><div class="lbl">Ingresos hoy</div></div>
+        <div class="dash-card"><div class="val blue">3</div><div class="lbl">Check-ins hoy</div></div>
+        <div class="dash-card"><div class="val purple">9</div><div class="lbl">Activos</div></div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;margin-top:12px;">
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:10px;font-weight:600;">CANAL DE ORIGEN · últimos 90 días</div>
+        <div class="source-bar"><span class="source-name">🟢 Directo</span><div class="source-track"><div class="source-fill" style="width:42%;background:#16a34a;">42%</div></div><span class="source-count">21</span></div>
+        <div class="source-bar"><span class="source-name">🔵 Booking.com</span><div class="source-track"><div class="source-fill" style="width:28%;background:#1d4ed8;">28%</div></div><span class="source-count">14</span></div>
+        <div class="source-bar"><span class="source-name">🔴 Airbnb</span><div class="source-track"><div class="source-fill" style="width:20%;background:#e11d48;">20%</div></div><span class="source-count">10</span></div>
+        <div class="source-bar"><span class="source-name">🟡 Expedia</span><div class="source-track"><div class="source-fill" style="width:10%;background:#d97706;">10%</div></div><span class="source-count">5</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5: HABITACIONES -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide bg-rooms" id="s5">
+  <div class="tag">Módulo 2</div>
+  <h2>🛏️ Habitaciones</h2>
+  <p class="sub">Configura y gestiona cada habitación del hotel.</p>
+  <div class="three-col" style="margin-top:24px;">
+    <div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:12px;color:#34d399;">Tipos de Habitación</h3>
+      <div class="feat-list">
+        <div class="feat-item"><div class="feat-check" style="background:rgba(52,211,153,.15);color:#34d399;">✓</div><p>Nombre y descripción del tipo</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(52,211,153,.15);color:#34d399;">✓</div><p>Precio base por noche</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(52,211,153,.15);color:#34d399;">✓</div><p>Capacidad máxima de personas</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(52,211,153,.15);color:#34d399;">✓</div><p>Amenidades incluidas</p></div>
+      </div>
+    </div>
+    <div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:12px;color:#60a5fa;">Habitaciones</h3>
+      <div class="feat-list">
+        <div class="feat-item"><div class="feat-check" style="background:rgba(96,165,250,.15);color:#60a5fa;">✓</div><p>Número y piso de la habitación</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(96,165,250,.15);color:#60a5fa;">✓</div><p>Asignación a tipo de habitación</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(96,165,250,.15);color:#60a5fa;">✓</div><p>Notas y características especiales</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(96,165,250,.15);color:#60a5fa;">✓</div><p>Activar / desactivar habitación</p></div>
+      </div>
+    </div>
+    <div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:12px;color:#fbbf24;">Estados</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+        <div style="display:flex;align-items:center;gap:10px;"><div style="width:12px;height:12px;border-radius:50%;background:#22c55e;"></div><span style="font-size:0.85rem;">Disponible</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><div style="width:12px;height:12px;border-radius:50%;background:#3b82f6;"></div><span style="font-size:0.85rem;">Reservada</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><div style="width:12px;height:12px;border-radius:50%;background:#ef4444;"></div><span style="font-size:0.85rem;">Ocupada</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><div style="width:12px;height:12px;border-radius:50%;background:#f59e0b;"></div><span style="font-size:0.85rem;">Limpieza</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><div style="width:12px;height:12px;border-radius:50%;background:#6b7280;"></div><span style="font-size:0.85rem;">Mantenimiento</span></div>
+      </div>
+      <div style="margin-top:16px;background:rgba(255,255,255,.05);border-radius:10px;padding:12px;">
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:8px;">CICLO DE ESTADO</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);line-height:2;">
+          Disponible → Reservada<br>
+          Reservada → Ocupada<br>
+          Ocupada → Limpieza<br>
+          Limpieza → Disponible
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 6: RESERVACIONES -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide bg-guests" id="s6">
+  <div class="tag">Módulo 3</div>
+  <h2>📋 Reservaciones</h2>
+  <p class="sub">Ciclo completo desde la reserva hasta el check-out.</p>
+  <div class="two-col" style="margin-top:20px;">
+    <div>
+      <h3 style="font-size:1rem;margin-bottom:14px;font-weight:700;">Al crear una reservación se registra:</h3>
+      <div class="feat-list">
+        <div class="feat-item"><div class="feat-check" style="background:rgba(251,191,36,.15);color:#fbbf24;">✓</div><p><strong>Huésped</strong> — nombre, teléfono, email, documento</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(251,191,36,.15);color:#fbbf24;">✓</div><p><strong>Habitación</strong> — número, tipo, piso</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(251,191,36,.15);color:#fbbf24;">✓</div><p><strong>Fechas</strong> — check-in, check-out, número de noches</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(251,191,36,.15);color:#fbbf24;">✓</div><p><strong>Tarifa</strong> — precio por noche, total automático</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(251,191,36,.15);color:#fbbf24;">✓</div><p><strong>Canal de origen</strong> — Booking, Airbnb, directo, teléfono...</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(251,191,36,.15);color:#fbbf24;">✓</div><p><strong>Adultos y niños</strong>, notas especiales</p></div>
+      </div>
+    </div>
+    <div>
+      <h3 style="font-size:1rem;margin-bottom:14px;font-weight:700;">Ciclo de vida</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:10px;padding:12px 16px;">
+          <span style="font-size:18px;">⏳</span>
+          <div><div style="font-weight:600;font-size:0.9rem;color:#fbbf24;">Pendiente</div><div style="font-size:0.78rem;color:rgba(255,255,255,.5);">Reserva creada, sin confirmar</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);border-radius:10px;padding:12px 16px;">
+          <span style="font-size:18px;">✅</span>
+          <div><div style="font-weight:600;font-size:0.9rem;color:#60a5fa;">Confirmada</div><div style="font-size:0.78rem;color:rgba(255,255,255,.5);">Reserva aprobada, habitación bloqueada</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:12px 16px;">
+          <span style="font-size:18px;">🏨</span>
+          <div><div style="font-weight:600;font-size:0.9rem;color:#34d399;">Hospedado (Check-in)</div><div style="font-size:0.78rem;color:rgba(255,255,255,.5);">Huésped en el hotel, habitación ocupada</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(156,163,175,.08);border:1px solid rgba(156,163,175,.25);border-radius:10px;padding:12px 16px;">
+          <span style="font-size:18px;">👋</span>
+          <div><div style="font-weight:600;font-size:0.9rem;color:#9ca3af;">Check-out</div><div style="font-size:0.78rem;color:rgba(255,255,255,.5);">Huésped salió, habitación pasa a limpieza</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 7: CALENDARIO -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide bg-calendar" id="s7">
+  <div class="tag">Módulo 4</div>
+  <h2>📅 Calendario de Disponibilidad</h2>
+  <p class="sub">Vista visual de todas las habitaciones y reservaciones.</p>
+  <div class="two-col" style="margin-top:16px;">
+    <div>
+      <div class="feat-list">
+        <div class="feat-item"><div class="feat-check" style="background:rgba(129,140,248,.15);color:#818cf8;">✓</div><p><strong>Colores por OTA:</strong> cada canal tiene su propio color en el calendario</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(129,140,248,.15);color:#818cf8;">✓</div><p><strong>Punto de estado:</strong> indica si la reserva está pendiente, confirmada u hospedada</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(129,140,248,.15);color:#818cf8;">✓</div><p><strong>Arrastrar para mover:</strong> cambia fechas arrastrando la barra</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(129,140,248,.15);color:#818cf8;">✓</div><p><strong>Clic para ver detalle:</strong> nombre, teléfono, email, total, estado</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(129,140,248,.15);color:#818cf8;">✓</div><p><strong>Bloqueo de habitaciones:</strong> marca días no disponibles con motivo</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(129,140,248,.15);color:#818cf8;">✓</div><p><strong>Vista 7, 14, 21 o 30 días</strong> con navegación por semanas</p></div>
+      </div>
+    </div>
+    <div class="cal-mock">
+      <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:10px;font-weight:600;">VISTA DEL CALENDARIO</div>
+      <div class="cal-header">
+        <div style="width:40px;"></div>
+        <div class="cal-day">Mar 24</div><div class="cal-day">Mar 25</div><div class="cal-day">Mar 26</div><div class="cal-day">Mar 27</div><div class="cal-day">Mar 28</div><div class="cal-day">Mar 29</div><div class="cal-day">Mar 30</div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-room">101</div>
+        <div class="cal-cells">
+          <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+          <div class="cal-bar" style="left:0%;width:28%;background:#dcfce7;border-color:#16a34a;color:#14532d;">● García</div>
+        </div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-room">102</div>
+        <div class="cal-cells">
+          <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+          <div class="cal-bar" style="left:28%;width:42%;background:#dbeafe;border-color:#1d4ed8;color:#1e3a8a;">● López</div>
+        </div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-room">201</div>
+        <div class="cal-cells">
+          <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+          <div class="cal-bar" style="left:14%;width:56%;background:#ffe4e6;border-color:#e11d48;color:#881337;">● Martínez</div>
+        </div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-room">202</div>
+        <div class="cal-cells">
+          <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+          <div class="cal-bar" style="left:0%;width:100%;background:rgba(156,163,175,.15);border-color:#6b7280;background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(0,0,0,.1) 3px,rgba(0,0,0,.1) 6px);color:#9ca3af;">🔒 Mantenimiento</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:2px;background:#dcfce7;border:1px solid #16a34a;"></div><span style="font-size:9px;color:rgba(255,255,255,.5);">Directo</span></div>
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:2px;background:#dbeafe;border:1px solid #1d4ed8;"></div><span style="font-size:9px;color:rgba(255,255,255,.5);">Booking</span></div>
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:2px;background:#ffe4e6;border:1px solid #e11d48;"></div><span style="font-size:9px;color:rgba(255,255,255,.5);">Airbnb</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 8: CANALES OTA -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide bg-ota" id="s8">
+  <div class="tag">Módulo 5</div>
+  <h2>🌐 Canales de Reservación (OTA)</h2>
+  <p class="sub">Registra de dónde viene cada reservación para análisis de rentabilidad.</p>
+  <div class="ota-grid" style="margin-top:24px;">
+    <div class="ota-chip" style="background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.4);color:#86efac;">🏨 Directo</div>
+    <div class="ota-chip" style="background:rgba(29,78,216,.1);border-color:rgba(29,78,216,.4);color:#93c5fd;">🔵 Booking.com</div>
+    <div class="ota-chip" style="background:rgba(225,29,72,.1);border-color:rgba(225,29,72,.4);color:#fda4af;">🔴 Airbnb</div>
+    <div class="ota-chip" style="background:rgba(217,119,6,.1);border-color:rgba(217,119,6,.4);color:#fcd34d;">🟡 Expedia</div>
+    <div class="ota-chip" style="background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.4);color:#d8b4fe;">🟣 Trivago</div>
+    <div class="ota-chip" style="background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.4);color:#fca5a5;">🔴 Hotels.com</div>
+    <div class="ota-chip" style="background:rgba(8,145,178,.1);border-color:rgba(8,145,178,.4);color:#67e8f9;">🔵 Despegar</div>
+    <div class="ota-chip" style="background:rgba(5,150,105,.1);border-color:rgba(5,150,105,.4);color:#6ee7b7;">🟢 TripAdvisor</div>
+    <div class="ota-chip" style="background:rgba(234,88,12,.1);border-color:rgba(234,88,12,.4);color:#fdba74;">📞 Teléfono</div>
+    <div class="ota-chip" style="background:rgba(13,148,136,.1);border-color:rgba(13,148,136,.4);color:#5eead4;">🚶 Walk-in</div>
+    <div class="ota-chip" style="background:rgba(147,51,234,.1);border-color:rgba(147,51,234,.4);color:#e9d5ff;">🏢 Agencia</div>
+    <div class="ota-chip" style="background:rgba(107,114,128,.1);border-color:rgba(107,114,128,.4);color:#d1d5db;">❓ Otro</div>
+  </div>
+  <div class="cards cards-3" style="margin-top:20px;">
+    <div class="card">
+      <div class="card-icon">🎨</div>
+      <h3>Color único por canal</h3>
+      <p>Cada OTA tiene su color en el calendario para identificación visual inmediata</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Gráfica en dashboard</h3>
+      <p>Barras horizontales mostrando % y cantidad por canal en los últimos 90 días</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">💡</div>
+      <h3>Registro manual</h3>
+      <p>La recepcionista ingresa la reserva y selecciona el canal de origen al crearla</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 9: FINANZAS -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide bg-finance" id="s9">
+  <div class="tag">Módulo 6</div>
+  <h2>💰 Módulo Financiero</h2>
+  <p class="sub">Control completo de ingresos, pagos y reportes contables.</p>
+  <div class="two-col" style="margin-top:16px;">
+    <div>
+      <div class="fin-tabs">
+        <div class="fin-tab active">Pagos</div>
+        <div class="fin-tab inactive">Cargos extra</div>
+        <div class="fin-tab inactive">Por cobrar</div>
+        <div class="fin-tab inactive">Cierre mensual</div>
+      </div>
+      <div class="feat-list">
+        <div class="feat-item"><div class="feat-check" style="background:rgba(192,132,252,.15);color:#c084fc;">✓</div><p><strong>Pagos:</strong> efectivo, tarjeta, transferencia, cheque, otro</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(192,132,252,.15);color:#c084fc;">✓</div><p><strong>Cargos extra:</strong> minibar, lavandería, estacionamiento, etc.</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(192,132,252,.15);color:#c084fc;">✓</div><p><strong>Cuentas por cobrar:</strong> reservas con saldo pendiente</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(192,132,252,.15);color:#c084fc;">✓</div><p><strong>Caja diaria:</strong> apertura, cierre y diferencias de caja</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(192,132,252,.15);color:#c084fc;">✓</div><p><strong>Cierre mensual:</strong> resumen con IVA, desglose por método, exportar CSV</p></div>
+        <div class="feat-item"><div class="feat-check" style="background:rgba(192,132,252,.15);color:#c084fc;">✓</div><p><strong>Tarifas por temporada:</strong> precios automáticos según fechas</p></div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;">
+      <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:14px;font-weight:600;">CIERRE MENSUAL — Marzo 2026</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:10px;padding:12px;">
+          <div style="font-size:0.85rem;font-weight:700;color:#34d399;">$94,500</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);">Ingresos brutos</div>
+        </div>
+        <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:12px;">
+          <div style="font-size:0.85rem;font-weight:700;color:#fbbf24;">$13,028</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);">IVA (16%)</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:8px;">Por método de pago:</div>
+      <div class="source-bar" style="margin:5px 0;"><span class="source-name" style="width:80px;">💵 Efectivo</span><div class="source-track"><div class="source-fill" style="width:50%;background:#16a34a;"></div></div><span class="source-count">50%</span></div>
+      <div class="source-bar" style="margin:5px 0;"><span class="source-name" style="width:80px;">💳 Tarjeta</span><div class="source-track"><div class="source-fill" style="width:35%;background:#1d4ed8;"></div></div><span class="source-count">35%</span></div>
+      <div class="source-bar" style="margin:5px 0;"><span class="source-name" style="width:80px;">🏦 Transfer.</span><div class="source-track"><div class="source-fill" style="width:15%;background:#7c3aed;"></div></div><span class="source-count">15%</span></div>
+      <div style="margin-top:12px;background:#1d4ed8;border-radius:8px;padding:8px;text-align:center;font-size:11px;font-weight:600;cursor:default;">⬇ Exportar CSV para contador</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 10: OTRAS FUNCIONES -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide" style="background:linear-gradient(135deg,#0f172a,#1a1207);" id="s10">
+  <div class="tag">Funciones adicionales</div>
+  <h2>⚡ Más funcionalidades</h2>
+  <p class="sub">Todo lo que necesita el equipo del hotel para trabajar eficientemente.</p>
+  <div class="cards cards-4" style="margin-top:24px;">
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <h3 class="amber">Búsqueda Global</h3>
+      <p>Ctrl+K abre un buscador instantáneo de huéspedes, habitaciones y reservaciones.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏷️</div>
+      <h3 class="amber">Tarifas por Temporada</h3>
+      <p>Define precios distintos por temporada alta, media y baja. Se auto-rellena al crear reservaciones.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧹</div>
+      <h3 class="amber">Housekeeping</h3>
+      <p>Asigna tareas de limpieza al personal. Seguimiento de estado por habitación.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔧</div>
+      <h3 class="amber">Mantenimiento</h3>
+      <p>Registra y asigna órdenes de mantenimiento a habitaciones con seguimiento.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📜</div>
+      <h3 class="amber">Auditoría</h3>
+      <p>Registro de todas las acciones del sistema: quién hizo qué y cuándo.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧾</div>
+      <h3 class="amber">Facturas</h3>
+      <p>Genera facturas en PDF por reservación con datos del hotel y desglose de cargos.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <h3 class="amber">Bloqueo de Fechas</h3>
+      <p>Bloquea habitaciones por mantenimiento o eventos con motivo visible en el calendario.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">👥</div>
+      <h3 class="amber">Gestión de Usuarios</h3>
+      <p>El admin crea, edita y desactiva usuarios con distintos roles y permisos.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 11: FLUJO COMPLETO -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide bg-flow" id="s11">
+  <div class="tag">Flujo de trabajo</div>
+  <h2>🔄 Ciclo completo de una reservación</h2>
+  <p class="sub">Desde que el huésped reserva hasta que deja el hotel.</p>
+  <div class="flow" style="margin-top:32px;">
+    <div class="flow-step s1">
+      <div class="icon">📞</div>
+      <div class="lbl">Reserva</div>
+      <div class="sub-lbl">Booking / Airbnb / Directo</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step s1">
+      <div class="icon">📋</div>
+      <div class="lbl">Registro</div>
+      <div class="sub-lbl">Recepcionista ingresa datos</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step s2">
+      <div class="icon">✅</div>
+      <div class="lbl">Confirmada</div>
+      <div class="sub-lbl">Habitación bloqueada</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step s3">
+      <div class="icon">🏨</div>
+      <div class="lbl">Check-in</div>
+      <div class="sub-lbl">Huésped en el hotel</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step s4">
+      <div class="icon">💳</div>
+      <div class="lbl">Cargos & Pagos</div>
+      <div class="sub-lbl">Extras, pagos parciales</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step s5">
+      <div class="icon">👋</div>
+      <div class="lbl">Check-out</div>
+      <div class="sub-lbl">Saldo liquidado</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:#fbbf24;background:rgba(251,191,36,.08);">
+      <div class="icon">🧹</div>
+      <div class="lbl">Limpieza</div>
+      <div class="sub-lbl">Habitación disponible</div>
+    </div>
+  </div>
+  <div class="cards cards-3" style="margin-top:24px;">
+    <div class="card">
+      <div class="card-icon">📅</div>
+      <h3>Calendario visual</h3>
+      <p>Todo el flujo visible en el calendario con colores por canal OTA y estado.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h3>Automatizaciones</h3>
+      <p>El estado de la habitación cambia automáticamente con cada acción.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Reportes</h3>
+      <p>Cierre mensual con todo registrado para el contador en un clic.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 12: CIERRE -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="slide bg-end" id="s12">
+  <div style="text-align:center;max-width:700px;margin:0 auto;">
+    <div style="font-size:72px;margin-bottom:24px;">🏨</div>
+    <div class="tag">Sistema listo para usar</div>
+    <h1 style="margin-top:16px;">Hotel <span class="accent">System</span></h1>
+    <p class="sub" style="margin:20px auto;max-width:500px;text-align:center;">Accede desde cualquier navegador en tu red. Sin costos de licencia, datos 100% en tu servidor.</p>
+    <div style="display:flex;justify-content:center;gap:16px;margin-top:32px;flex-wrap:wrap;">
+      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:20px 28px;min-width:150px;">
+        <div style="font-size:28px;font-weight:800;color:#818cf8;">admin</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px;">Usuario por defecto</div>
+      </div>
+      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:20px 28px;min-width:150px;">
+        <div style="font-size:28px;font-weight:800;color:#34d399;">admin123</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px;">Contraseña por defecto</div>
+      </div>
+      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:20px 28px;min-width:150px;">
+        <div style="font-size:28px;font-weight:800;color:#fbbf24;">:3001</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px;">Puerto del servidor</div>
+      </div>
+    </div>
+    <p style="margin-top:36px;font-size:12px;color:rgba(255,255,255,.25);">github.com/axiot9b/hotel-system</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- NAVIGATION -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="nav">
+  <button id="prevBtn" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <div class="dot-nav" id="dotNav"></div>
+  <span class="counter" id="counter">1 / 12</span>
+  <button id="nextBtn" onclick="changeSlide(1)">Siguiente →</button>
+</div>
+
+<script>
+  const TOTAL = 12;
+  let current = 1;
+
+  const dotNav = document.getElementById('dotNav');
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 1 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotNav.appendChild(d);
+  }
+
+  function goTo(n) {
+    document.getElementById('s' + current).classList.remove('active');
+    dotNav.children[current - 1].classList.remove('active');
+    current = Math.max(1, Math.min(TOTAL, n));
+    document.getElementById('s' + current).classList.add('active');
+    dotNav.children[current - 1].classList.add('active');
+    document.getElementById('counter').textContent = current + ' / ' + TOTAL;
+    document.getElementById('prevBtn').disabled = current === 1;
+    document.getElementById('nextBtn').disabled = current === TOTAL;
+  }
+
+  function changeSlide(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   changeSlide(-1);
+  });
+</script>
+</body>
+</html>
